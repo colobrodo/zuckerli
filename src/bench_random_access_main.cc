@@ -21,7 +21,6 @@ void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_
   std::vector<uint32_t> samples(random, 0);
   for(uint32_t i = 0; i < random; i++) {
     auto a = distrib(mt);
-    std::cout << "Gen" << i << ": " << a << std::endl;
     samples[i] = a;
   }
 
@@ -30,15 +29,15 @@ void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_
     auto arcs = 0;
     auto t_start = std::chrono::high_resolution_clock::now();
     for (uint32_t sample: samples) {
-      std::cout << "sample: " << sample << std::endl;
       auto neighbours = graph.Neighbours(sample);
       arcs += neighbours.size();
     }
     auto t_stop = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<double, std::nano>(t_stop - t_start).count();
-    std::cout << "arcs: " << arcs << std::endl;
     auto time_per_arc = elapsed / arcs;
     std::cout
+        << "Arcs: " 
+        << arcs << std::endl
         << "Wall time elapsed: "
         << elapsed
         << " ns" << std::endl
