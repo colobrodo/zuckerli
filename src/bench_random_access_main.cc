@@ -17,8 +17,8 @@ ABSL_FLAG(uint32_t, seed, 0, "The seed of the experiment");
 
 void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_t repeats, uint32_t seed) {
   std::mt19937 mt(seed);
-  std::uniform_int_distribution<int> distrib(0, graph.size() - 1);
-  std::vector<bool> samples(random, 0);
+  std::uniform_int_distribution<uint32_t> distrib(0, graph.size() - 1);
+  std::vector<uint32_t> samples(random, 0);
   for(uint32_t i = 0; i < random; i++) {
     auto a = distrib(mt);
     std::cout << "Gen" << i << ": " << a << std::endl;
