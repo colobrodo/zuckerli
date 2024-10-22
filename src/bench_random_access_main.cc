@@ -33,7 +33,7 @@ void TimedRandomAccess(const zuckerli::UncompressedGraph& graph, uint32_t random
   std::cout << "Random access to adjacency lists..." << std::endl;
   for (uint32_t repeat = 0; repeat < repeats; repeat++) {
     auto t_start = std::chrono::high_resolution_clock::now();
-    for (uint32_t sample: sample) {
+    for (uint32_t sample: samples) {
       auto neighbour = graph.Neighbours(sample);
     }
     auto t_stop = std::chrono::high_resolution_clock::now();
@@ -51,7 +51,7 @@ void TimedRandomAccess(const zuckerli::UncompressedGraph& graph, uint32_t random
 
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
-  zuckerli::UncompressedGraph graph(absl::GetFlag(FLAGS_input_path));
+  zuckerli::CompressedGraph graph(absl::GetFlag(FLAGS_input_path));
   std::cout << "This graph has " << graph.size() << " nodes." << std::endl;
   TimedRandomAccess(graph, absl::GetFlag(FLAGS_random), absl::GetFlag(FLAGS_repeats));
   return 0;
