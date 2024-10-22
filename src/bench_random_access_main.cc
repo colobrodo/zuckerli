@@ -20,12 +20,9 @@ void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_
   std::uniform_int_distribution<int> distrib(0, graph.size() - 1);
   std::vector<bool> samples(random, 0);
   for(uint32_t i = 0; i < random; i++) {
-    samples[i] = distrib(mt);
-  }
-
-  // DEBUG:
-  for(auto sample: samples) {
-    std::cout << sample << std::endl;
+    auto a = distrib(mt);
+    std::cout << "Gen: " << a << std::endl;
+    samples[i] = a;
   }
 
   std::cout << "Random access to adjacency lists..." << std::endl;
