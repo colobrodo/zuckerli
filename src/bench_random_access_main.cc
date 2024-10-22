@@ -17,34 +17,36 @@ ABSL_FLAG(uint32_t, seed, 0, "The seed of the experiment");
 
 void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_t repeats, uint32_t seed) {
   std::mt19937 mt(seed);
-  std::uniform_int_distribution<uint32_t> distrib(0, graph.size() - 1);
+  std::uniform_int_distribution<int> distrib(0, graph.size() - 1);
   std::vector<bool> samples(random, 0);
   for(uint32_t i = 0; i < random; i++) {
     samples[i] = distrib(mt);
   }
 
-  for(uint32_t i = 0; i < random; i++) {
-    std::cout << samples[i] << std::endl;
+  for(auto sample: samples) {
+    std::cout << sample << std::endl;
   }
 
   return;
 
   std::cout << "Random access to adjacency lists..." << std::endl;
   for (uint32_t repeat = 0; repeat < repeats; repeat++) {
+    auto arcs = 0;
     auto t_start = std::chrono::high_resolution_clock::now();
     for (uint32_t sample: samples) {
-      auto neighbour = graph.Neighbours(sample);
+      auto neighbours = graph.Neighbours(sample);
+      arcs += neighbours.size();
     }
     auto t_stop = std::chrono::high_resolution_clock::now();
-    auto elapsed = std::chrono::duration<double, std::milli>(t_stop - t_start).count();
-    auto time_per_node = elapsed / random;
+    auto elapsed = std::chrono::duration<double, std::nano>(t_stop - t_start).count();
+    auto time_per_node = elapsed / c;
     std::cout
         << "Wall time elapsed: "
         << elapsed
         << " ms" << std::endl
         << "Average random access: "
         << time_per_node
-        << " ms/node" << std::endl;
+        << " ns/arc" << std::endl;
   }
 }
 
