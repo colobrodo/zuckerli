@@ -146,6 +146,8 @@ target_link_libraries(compressed_graph decode)
 add_executable(traversal_main_compressed src/traversal_main_compressed.cc)
 target_link_libraries(traversal_main_compressed compressed_graph Threads::Threads)
 
+add_executable(bench_random_access src/bench_random_access_main.cc)
+target_link_libraries(bench_random_access compressed_graph Threads::Threads)
 
 add_executable(roundtrip_test src/roundtrip_test.cc)
 target_link_libraries(roundtrip_test encode decode uncompressed_graph gmock gtest_main gtest Threads::Threads)
