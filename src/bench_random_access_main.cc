@@ -1,4 +1,3 @@
-#include "compressed_graph.h"
 
 #include <cstddef>
 #include <cstdio>
@@ -7,9 +6,10 @@
 #include <vector>
 
 #include "common.h"
-#include "context_model.h"
 #include "decode.h"
-#include "integer_coder.h"
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+#include "compressed_graph.h"
 
 ABSL_FLAG(std::string, input_path, "", "Input file path.");
 ABSL_FLAG(uint32_t, repeats, 10, "The number of repeats");
@@ -23,7 +23,7 @@ void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_
   for(uint32_t i = 0; i < random; i++) {
     samples[i] = distrib(mt);
   }
-  int num_visited = 0;
+
   for(uint32_t i = 0; i < random; i++) {
     std::cout << samples[i] << std::endl;
   }
