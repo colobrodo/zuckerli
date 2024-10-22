@@ -5,11 +5,10 @@
 #include <random>
 #include <vector>
 
-#include "common.h"
-#include "decode.h"
+#include "compressed_graph.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "compressed_graph.h"
+#include "uncompressed_graph.h"
 
 ABSL_FLAG(std::string, input_path, "", "Input file path.");
 ABSL_FLAG(uint32_t, repeats, 10, "The number of repeats");
