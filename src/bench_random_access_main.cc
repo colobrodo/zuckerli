@@ -15,7 +15,7 @@ ABSL_FLAG(std::string, input_path, "", "Input file path.");
 ABSL_FLAG(uint32_t, repeats, 10, "The number of repeats");
 ABSL_FLAG(uint32_t, random, 1000, "Number of random access to randomly selected node");
 
-void TimedRandomAccess(const zuckerli::UncompressedGraph& graph, uint32_t random, uint32_t repeats) {
+void TimedRandomAccess(const zuckerli::CompressedGraph& graph, uint32_t random, uint32_t repeats) {
   std::mt19937 mt();
   mt.seed(0);
   std::uniform_int_distribution<uint32_t> distrib(0, graph.size() - 1);
