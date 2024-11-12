@@ -18,6 +18,9 @@
 ABSL_FLAG(bool, print_bits_breakdown, false,
           "Print a breakdown of where bits are spent");
 
+ABSL_FLAG(bool, print_empty_context, false,
+          "Report the id of all the unused context");
+
 namespace zuckerli {
 
 namespace {
@@ -484,6 +487,14 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
   }
   auto data = std::move(writer).GetData();
   auto stop = std::chrono::high_resolution_clock::now();
+
+  if (absl::GetFlag(FLAGS_print_empty_context)) {
+    for (size_t i = kFirstDegreeContext; i < kNumContexts; i++) {
+      if (bits_per_ctx[i] == 0) {
+        fprintf(stderr, "Empty context: %lu\n", i);
+      }
+    }
+  }
 
   if (absl::GetFlag(FLAGS_print_bits_breakdown)) {
     double degree_bits = 0;
