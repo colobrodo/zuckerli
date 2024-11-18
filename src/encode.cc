@@ -521,7 +521,7 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     double total_bits = data.size() * 8.0f;
     fprintf(stderr, "Degree bits:         %10.2f [%5.2f bits/edge]\n",
             degree_bits, degree_bits / edges);
-    fprintf(stderr, "\tof which %10.2f encoded without delta [%5.2 bits/edge]",
+    fprintf(stderr, "\tof which %10.2f encoded without delta [%5.2 bits/edge]\n",
       first_degree_bits, first_degree_bits / edges);
     fprintf(stderr, "Reference bits:      %10.2f [%5.2f bits/edge]\n",
             reference_bits, reference_bits / edges);
