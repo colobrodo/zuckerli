@@ -501,6 +501,7 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     for (size_t i = kFirstDegreeContext; i < kReferenceContextBase; i++) {
       degree_bits += bits_per_ctx[i];
     }
+    double first_degree_bits = bits_per_ctx[kFirstDegreeContext];
     double reference_bits = 0;
     for (size_t i = kReferenceContextBase; i < kBlockCountContext; i++) {
       reference_bits += bits_per_ctx[i];
@@ -520,6 +521,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     double total_bits = data.size() * 8.0f;
     fprintf(stderr, "Degree bits:         %10.2f [%5.2f bits/edge]\n",
             degree_bits, degree_bits / edges);
+    fprintf(stderr, "\tof which %10.2f encoded without delta [%5.2 bits/edge]",
+      first_degree_bits, first_degree_bits / edges);
     fprintf(stderr, "Reference bits:      %10.2f [%5.2f bits/edge]\n",
             reference_bits, reference_bits / edges);
     fprintf(stderr, "Block bits:          %10.2f [%5.2f bits/edge]\n",
