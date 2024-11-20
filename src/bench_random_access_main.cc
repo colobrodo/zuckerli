@@ -36,8 +36,6 @@ void TimedRandomAccess(zuckerli::CompressedGraph graph, uint32_t random, uint32_
     auto elapsed = std::chrono::duration<double, std::nano>(t_stop - t_start).count();
     auto time_per_arc = elapsed / arcs;
     std::cout
-        << "Arcs: " 
-        << arcs << std::endl
         << "Wall time elapsed: "
         << elapsed
         << " ns" << std::endl
