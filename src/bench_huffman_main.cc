@@ -17,8 +17,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   constexpr size_t kNumContexts = 1;
   constexpr size_t kDefaultContext = 1;
   
-
-  IntegerData data;
+  zuckerli::IntegerData data;
 
   std::mt19937 mt(seed);
   std::uniform_int_distribution<uint32_t> dist(
@@ -29,7 +28,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
     data.Add(kDefaultContext, integer);
   }
 
-  BitWriter writer;
+  zuckerli::BitWriter writer;
   std::vector<double> unused_bits_per_ctx;
   HuffmanEncode(data, kNumContexts, &writer, {}, &unused_bits_per_ctx);
 
@@ -38,13 +37,13 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
     << "Start decoding " << random << " integers"
     << std::endl;
   for (uint32_t repeat = 0; repeat < repeats; repeat++) {
-    BitReader reader(encoded.data(), encoded.size());
-    HuffmanReader symbol_reader;
+    zuckerli::BitReader reader(encoded.data(), encoded.size());
+    zuckerli::HuffmanReader symbol_reader;
     symbol_reader.Init(kNumContexts, &reader);
 
     auto t_start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < random; i++) {
-      IntegerCoder::Read(kDefaultContext, &reader, &symbol_reader);
+      zuckerli::IntegerCoder::Read(kDefaultContext, &reader, &symbol_reader);
     }
     auto t_stop = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<double, std::nano>(t_stop - t_start).count();
