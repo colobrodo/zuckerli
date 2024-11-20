@@ -15,7 +15,7 @@ ABSL_FLAG(uint32_t, seed, 0, "The seed of the experiment");
 
 void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   constexpr size_t kNumContexts = 1;
-  constexpr size_t kDefaultContext = 1;
+  constexpr size_t kDefaultContext = 0;
   
   zuckerli::IntegerData data;
 
