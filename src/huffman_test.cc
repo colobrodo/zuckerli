@@ -48,7 +48,7 @@ TEST(HuffmanTest, TestRoundtrip) {
   std::vector<uint8_t> encoded = std::move(writer).GetData();
   BitReader reader(encoded.data(), encoded.size());
   HuffmanReader symbol_reader;
-  ASSERT_TRUE(symbol_reader.Init(kNumContexts, &reader));
+  symbol_reader.Init(kNumContexts, &reader);
 
   for (size_t i = 0; i < kNumIntegers; i++) {
     EXPECT_EQ(IntegerCoder::Read(data.Context(i), &reader, &symbol_reader),

@@ -54,7 +54,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
       << " ns" << std::endl
       << "Average read time: "
       << time_per_read
-      << " ns/arc" << std::endl;
+      << " ns/read" << std::endl;
 
   }
 }
