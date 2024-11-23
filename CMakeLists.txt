@@ -150,7 +150,7 @@ add_executable(bench_random_access src/bench_random_access_main.cc)
 target_link_libraries(bench_random_access compressed_graph Threads::Threads)
 
 add_executable(bench_huffman src/bench_huffman_main.cc)
-target_link_libraries(bench_huffman huffman compressed_graph Threads::Threads)
+target_link_libraries(bench_huffman huffman Threads::Threads)
 
 add_executable(roundtrip_test src/roundtrip_test.cc)
 target_link_libraries(roundtrip_test encode decode uncompressed_graph gmock gtest_main gtest Threads::Threads)

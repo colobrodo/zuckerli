@@ -5,6 +5,7 @@
 
 #include "bit_reader.h"
 #include "integer_coder.h"
+#include "absl/random/zipf_distribution.h"
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -13,6 +14,7 @@ ABSL_FLAG(uint32_t, random, 1000, "Number of reads to bench for repeat");
 ABSL_FLAG(uint32_t, repeats, 10, "The number of repeats");
 ABSL_FLAG(uint32_t, seed, 0, "The seed of the experiment");
 
+// Bench the average read time over a set of encoded integer sampled from a zipf distribution
 void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   constexpr size_t kNumContexts = 1;
   constexpr size_t kDefaultContext = 0;
@@ -20,11 +22,10 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   zuckerli::IntegerData data;
 
   std::mt19937 mt(seed);
-  std::uniform_int_distribution<uint32_t> dist(
-      0, std::numeric_limits<uint32_t>::max());
+  absl::zipf_distribution<uint32_t> zipf_dist(10000, 1.5);
 
   for (size_t i = 0; i < random; i++) {
-    size_t integer = dist(mt);
+    size_t integer = zipf_dist(mt);
     data.Add(kDefaultContext, integer);
   }
 
