@@ -22,7 +22,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   zuckerli::IntegerData data;
 
   std::mt19937 mt(seed);
-  absl::zipf_distribution<uint32_t> zipf_dist(10000, 1.5);
+  absl::zipf_distribution<uint32_t> zipf_dist(1000000000, 1.5);
 
   for (size_t i = 0; i < random; i++) {
     size_t integer = zipf_dist(mt);
