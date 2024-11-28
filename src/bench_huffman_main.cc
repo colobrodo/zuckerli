@@ -2,6 +2,7 @@
 #include "huffman.h"
 
 #include <random>
+#include <algorithm>
 
 #include "bit_reader.h"
 #include "integer_coder.h"
@@ -33,6 +34,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
   std::vector<double> unused_bits_per_ctx;
   HuffmanEncode(data, kNumContexts, &writer, {}, &unused_bits_per_ctx);
 
+  std::vector<double> times_per_repeats;
   std::vector<uint8_t> encoded = std::move(writer).GetData();
   std::cout 
     << "Start decoding " << random << " integers"
@@ -49,6 +51,7 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
     auto t_stop = std::chrono::high_resolution_clock::now();
     auto elapsed = std::chrono::duration<double, std::nano>(t_stop - t_start).count();
     auto time_per_read = elapsed / random;
+    times_per_repeats.push_back(time_per_read);
     std::cout
       << "Wall time elapsed: "
       << elapsed
@@ -56,8 +59,16 @@ void TimedHuffmanRead(uint32_t random, uint32_t repeats, uint32_t seed) {
       << "Average read time: "
       << time_per_read
       << " ns/read" << std::endl;
-
   }
+
+  std::sort(times_per_repeats.begin(), times_per_repeats.end());
+  double median_time;
+  if (times_per_repeats.size() % 2 == 0) {
+    median_time = (times_per_repeats[times_per_repeats.size() / 2 - 1] + times_per_repeats[times_per_repeats.size() / 2]) / 2;
+  } else {
+    median_time = times_per_repeats[times_per_repeats.size() / 2];
+  }
+  std::cout << "Median time: " << median_time << " ns/read" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
