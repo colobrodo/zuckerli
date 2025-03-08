@@ -188,16 +188,27 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
   fprintf(stderr, "has ref pre: %lu\n", has_ref);
   std::vector<std::vector<uint32_t>> out_edges(N);
   for (size_t i = 0; i < N; i++) {
+    // 0 <= references[i] <= windows_size
     if (references[i] != 0) {
+      // for each j in out_edges, for each i in out_egdes[j]: j + window_size >= i  
+      // circular buffer for the table but later we iterate in reverse order so we should always
+      // keep at least the references list
       out_edges[i - references[i]].push_back(i);
     }
   }
+  // table for dynamic programming: the maximum weight of the subforest rooted in x 
+  // that has no paths longer than max_lenght and where the root x
+  // is not part of a path longer than i (from 0 to max_lenght)
+  // so using dyn[node * (max_length + 1) + max_length] denotes the weight where
+  // we are considering the node to be the root  
   std::vector<float> dyn(N * (max_length + 1));
   std::vector<bool> choice(N * (max_length + 1));  // true -> use reference.
 
   // TODO: check this.
   for (size_t ip1 = N; ip1 > 0; ip1--) {
     size_t i = ip1 - 1;
+    // in the paper M_r(i) so the case where I don't choose this node to be referred from other lists
+    // and favor the children so they can be the end of full (max_lenght) reference chains
     float child_sum_full_chain = 0;
     for (uint64_t child : out_edges[i]) {
       child_sum_full_chain += dyn[child * (max_length + 1) + max_length];
@@ -208,6 +219,8 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
 
     // counting parent link, if any.
     for (size_t links_to_use = 1; links_to_use <= max_length; links_to_use++) {
+      // Now we are choosing i to have at most children chains of 'links_to_use'
+      // (because we used 'max_length - links_to_use' links before somewhere)  
       float child_sum = saved_costs[i];
       // Take it.
       for (uint64_t child : out_edges[i]) {
@@ -539,8 +552,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
       std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
           .count();
 
-  fprintf(stderr, "Compressed %.2f ME/s (%zu) to %.2f BPE. Checksum: %lx\n",
-          edges / elapsed, edges, 8.0 * data.size() / edges, chksum);
+  fprintf(stderr, "Compressed %zu edges in %.2fms (%.2f ME/s) to %.2f BPE. Checksum: %lx\n",
+    edges, elapsed, edges / elapsed, 8.0 * data.size() / edges, chksum);
   if (checksum) *checksum = chksum;
   return data;
 }
