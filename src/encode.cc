@@ -259,7 +259,7 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
 void LogElapsedTime(const char *message, std::chrono::_V2::high_resolution_clock::time_point &start_time) {
   auto now = std::chrono::high_resolution_clock::now();
   float elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start_time).count();
-  fprintf(stderr, "%s: %10.3f\n", message, elapsed / 1e6);
+  fprintf(stderr, "%s: %10.3fs\n", message, elapsed / 1e6);
   start_time = now;
 }
 
@@ -343,6 +343,7 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
         chain_length[i] = chain_length[i - references[i]] + 1;
       }
     }
+    LogElapsedTime("Create unbounded maximum forest", start_section);
 
     // Ensure max reference chain length.
     if (allow_random_access && !greedy) {
