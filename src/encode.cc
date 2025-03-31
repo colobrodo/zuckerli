@@ -259,7 +259,7 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
 void LogElapsedTime(const char *message, std::chrono::_V2::high_resolution_clock::time_point &start_time) {
   auto now = std::chrono::high_resolution_clock::now();
   float elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start_time).count();
-  fprintf(stderr, "%s: %10.2f\n", message, elapsed);
+  fprintf(stderr, "%s: %10.3f\n", message, elapsed / 1e6);
   start_time = now;
 }
 
