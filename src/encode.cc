@@ -256,17 +256,9 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
 }
 }  // namespace
 
-void LogElapsedTime(const char *message, std::chrono::_V2::high_resolution_clock::time_point &start_time) {
-  auto now = std::chrono::high_resolution_clock::now();
-  float elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start_time).count();
-  fprintf(stderr, "%s: %10.3fs\n", message, elapsed / 1e6);
-  start_time = now;
-}
-
 std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
                                  bool allow_random_access, size_t *checksum) {
   auto start = std::chrono::high_resolution_clock::now();
-  auto start_section = start;
   size_t N = g.size();
   size_t chksum = 0;
   size_t edges = 0;
@@ -289,7 +281,6 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
   for (size_t i = 0; i < kNumContexts; i++) {
     symbol_count[i].resize(kNumSymbols, 0);
   }
-  LogElapsedTime("Count symbols", start_section);
 
   // More rounds improve compression a bit, but are also much slower.
   // TODO: sometimes, it actually makes things worse (???). Might be max
@@ -348,25 +339,22 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     // Ensure max reference chain length.
     if (allow_random_access && !greedy) {
       UpdateReferencesForMaxLength(saved_costs, references, kMaxChainLength);
-      LogElapsedTime("Update references for max length", start_section);
       std::vector<size_t> chain_length(N);
       for (size_t i = 0; i < N; i++) {
         if (references[i] != 0) {
           chain_length[i] = chain_length[i - references[i]] + 1;
         }
       }
-      LogElapsedTime("Compute backwards chain length references", start_section);
       std::vector<size_t> fwd_chain_length(N);
       for (size_t ip1 = N; ip1 > 0; ip1--) {
         size_t i = ip1 - 1;
         if (references[i] != 0) {
           fwd_chain_length[i - references[i]] = std::max(
-           fwd_chain_length[i] + 1, fwd_chain_length[i - references[i]]);
+              fwd_chain_length[i] + 1, fwd_chain_length[i - references[i]]);
         }
       }
-      LogElapsedTime("Compute forward chain length references", start_section);
       fprintf(stderr, "Adding removed references, round %lu%20s\n", round + 1,
-        "");
+              "");
       for (size_t i = 0; i < N; i++) {
         if (i % 32 == 0) fprintf(stderr, "%lu/%lu\r", i, N);
         if (references[i] != 0) {
@@ -402,14 +390,12 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
           chain_length[i] = chain_length[i - references[i]] + 1;
         }
       }
-      LogElapsedTime("Greedy re-assignment of references", start_section);
       size_t has_ref = 0;
       for (size_t i = 0; i < N; i++) {
         if (references[i]) {
           has_ref++;
         }
       }
-      LogElapsedTime("Count references after greedy assignment", start_section);
       fprintf(stderr, "has ref restore: %lu\n", has_ref);
     }
 
@@ -435,7 +421,6 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
         ProcessResiduals(residuals, i, adj_block, allow_random_access, rle_undo,
                          token_cost);
       }
-      LogElapsedTime("Computing frequencies", start_section);
 
       for (size_t i = 0; i < kNumContexts; i++) {
         float total_symbols = std::accumulate(symbol_count[i].begin(),
@@ -449,7 +434,6 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
           symbol_count[i][s] = 0;
         }
       }
-      LogElapsedTime("Counting symbols after round", start_section);
     }
   }
 
@@ -501,26 +485,22 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
         [&]() { tokens.RemoveLast(); },
         [&](size_t ctx, size_t v) { tokens.Add(ctx, v); });
   }
-  LogElapsedTime("Computing adjacency lists", start_section);
-  
   for (size_t i = 0; i < N; i++) {
     edges += g.Degree(i);
     for (size_t j = 0; j < g.Degree(i); j++) {
       chksum = Checksum(chksum, i, g.Neighbours(i)[j]);
     }
   }
-  LogElapsedTime("Computing checksums", start_section);
-  
+
   std::vector<double> bits_per_ctx;
   if (allow_random_access) {
     HuffmanEncode(tokens, kNumContexts, &writer, node_degree_indices,
-      &bits_per_ctx);
+                  &bits_per_ctx);
   } else {
     ANSEncode(tokens, kNumContexts, &writer, &bits_per_ctx);
   }
   auto data = std::move(writer).GetData();
   auto stop = std::chrono::high_resolution_clock::now();
-  LogElapsedTime("Writing adjacency lists to bitstream", start_section);
 
   if (absl::GetFlag(FLAGS_print_empty_context)) {
     for (size_t i = kFirstDegreeContext; i < kNumContexts; i++) {
