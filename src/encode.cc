@@ -6,13 +6,13 @@
 #include <chrono>
 #include <numeric>
 
+#include "absl/flags/flag.h"
 #include "ans.h"
 #include "checksum.h"
 #include "common.h"
 #include "context_model.h"
 #include "huffman.h"
 #include "integer_coder.h"
-#include "absl/flags/flag.h"
 #include "uncompressed_graph.h"
 
 ABSL_FLAG(bool, print_bits_breakdown, false,
@@ -49,7 +49,7 @@ void ComputeBlocksAndResiduals(const UncompressedGraph &g, size_t i, size_t ref,
     } else if (a < b) {
       ipos++;
       residuals->push_back(a);
-    } else {  // a > b
+    } else { // a > b
       if (is_same) {
         blocks->emplace_back(0);
       }
@@ -177,7 +177,8 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
   for (size_t i = 0; i < N; i++) {
     ZKR_ASSERT(references[i] <= i);
     ZKR_ASSERT(saved_costs[i] >= 0);
-    if (references[i] == 0) ZKR_ASSERT(saved_costs[i] == 0);
+    if (references[i] == 0)
+      ZKR_ASSERT(saved_costs[i] == 0);
   }
   size_t has_ref = 0;
   for (size_t i = 0; i < N; i++) {
@@ -190,25 +191,26 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
   for (size_t i = 0; i < N; i++) {
     // 0 <= references[i] <= windows_size
     if (references[i] != 0) {
-      // for each j in out_edges, for each i in out_egdes[j]: j + window_size >= i  
-      // circular buffer for the table but later we iterate in reverse order so we should always
-      // keep at least the references list
+      // for each j in out_edges, for each i in out_egdes[j]: j + window_size >=
+      // i circular buffer for the table but later we iterate in reverse order
+      // so we should always keep at least the references list
       out_edges[i - references[i]].push_back(i);
     }
   }
-  // table for dynamic programming: the maximum weight of the subforest rooted in x 
-  // that has no paths longer than max_lenght and where the root x
-  // is not part of a path longer than i (from 0 to max_lenght)
-  // so using dyn[node * (max_length + 1) + max_length] denotes the weight where
-  // we are considering the node to be the root  
+  // table for dynamic programming: the maximum weight of the subforest rooted
+  // in x that has no paths longer than max_lenght and where the root x is not
+  // part of a path longer than i (from 0 to max_lenght) so using dyn[node *
+  // (max_length + 1) + max_length] denotes the weight where we are considering
+  // the node to be the root
   std::vector<float> dyn(N * (max_length + 1));
-  std::vector<bool> choice(N * (max_length + 1));  // true -> use reference.
+  std::vector<bool> choice(N * (max_length + 1)); // true -> use reference.
 
   // TODO: check this.
   for (size_t ip1 = N; ip1 > 0; ip1--) {
     size_t i = ip1 - 1;
-    // in the paper M_r(i) so the case where I don't choose this node to be referred from other lists
-    // and favor the children so they can be the end of full (max_lenght) reference chains
+    // in the paper M_r(i) so the case where I don't choose this node to be
+    // referred from other lists and favor the children so they can be the end
+    // of full (max_lenght) reference chains
     float child_sum_full_chain = 0;
     for (uint64_t child : out_edges[i]) {
       child_sum_full_chain += dyn[child * (max_length + 1) + max_length];
@@ -220,7 +222,7 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
     // counting parent link, if any.
     for (size_t links_to_use = 1; links_to_use <= max_length; links_to_use++) {
       // Now we are choosing i to have at most children chains of 'links_to_use'
-      // (because we used 'max_length - links_to_use' links before somewhere)  
+      // (because we used 'max_length - links_to_use' links before somewhere)
       float child_sum = saved_costs[i];
       // Take it.
       for (uint64_t child : out_edges[i]) {
@@ -254,7 +256,7 @@ void UpdateReferencesForMaxLength(const std::vector<float> &saved_costs,
   }
   fprintf(stderr, "has ref post: %lu\n", has_ref);
 }
-}  // namespace
+} // namespace
 
 std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
                                  bool allow_random_access, size_t *checksum) {
@@ -304,7 +306,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
         allow_random_access && absl::GetFlag(FLAGS_greedy_random_access);
     std::vector<uint32_t> chain_length(N, 0);
     for (size_t i = 0; i < N; i++) {
-      if (i % 32 == 0) fprintf(stderr, "%lu/%lu\r", i, N);
+      if (i % 32 == 0)
+        fprintf(stderr, "%lu/%lu\r", i, N);
       c = 0;
       // No block copying.
       residuals.assign(g.Neighbours(i).begin(), g.Neighbours(i).end());
@@ -315,7 +318,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
       saved_costs[i] = 0;
 
       for (size_t ref = 1; ref < std::min(SearchNum(), i) + 1; ref++) {
-        if (greedy && chain_length[i - ref] >= kMaxChainLength) continue;
+        if (greedy && chain_length[i - ref] >= kMaxChainLength)
+          continue;
         adj_block.clear();
         c = 0;
         ComputeBlocksAndResiduals(g, i, ref, &blocks, &residuals);
@@ -334,7 +338,6 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
         chain_length[i] = chain_length[i - references[i]] + 1;
       }
     }
-    LogElapsedTime("Create unbounded maximum forest", start_section);
 
     // Ensure max reference chain length.
     if (allow_random_access && !greedy) {
@@ -356,7 +359,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
       fprintf(stderr, "Adding removed references, round %lu%20s\n", round + 1,
               "");
       for (size_t i = 0; i < N; i++) {
-        if (i % 32 == 0) fprintf(stderr, "%lu/%lu\r", i, N);
+        if (i % 32 == 0)
+          fprintf(stderr, "%lu/%lu\r", i, N);
         if (references[i] != 0) {
           chain_length[i] = chain_length[i - references[i]] + 1;
           continue;
@@ -408,7 +412,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     if (round + 1 != absl::GetFlag(FLAGS_num_rounds)) {
       fprintf(stderr, "Computing freqs, round %lu%20s\n", round + 1, "");
       for (size_t i = 0; i < N; i++) {
-        if (i % 32 == 0) fprintf(stderr, "%lu/%lu\r", i, N);
+        if (i % 32 == 0)
+          fprintf(stderr, "%lu/%lu\r", i, N);
         adj_block.clear();
         if (references[i] == 0) {
           residuals.assign(g.Neighbours(i).begin(), g.Neighbours(i).end());
@@ -443,7 +448,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
   size_t last_reference = 0;
   fprintf(stderr, "Compressing%20s\n", "");
   for (size_t i = 0; i < N; i++) {
-    if (i % 32 == 0) fprintf(stderr, "%lu/%lu\r", i, N);
+    if (i % 32 == 0)
+      fprintf(stderr, "%lu/%lu\r", i, N);
     fflush(stderr);
     if ((allow_random_access && i % kDegreeReferenceChunkSize == 0) || i == 0) {
       last_reference = 0;
@@ -535,7 +541,8 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
     double total_bits = data.size() * 8.0f;
     fprintf(stderr, "Degree bits:         %10.2f [%5.2f bits/edge]\n",
             degree_bits, degree_bits / edges);
-    fprintf(stderr, "\tof which %10.2f encoded without delta [%5.2f bits/edge]\n",
+    fprintf(stderr,
+            "\tof which %10.2f encoded without delta [%5.2f bits/edge]\n",
             first_degree_bits, first_degree_bits / edges);
     fprintf(stderr, "Reference bits:      %10.2f [%5.2f bits/edge]\n",
             reference_bits, reference_bits / edges);
@@ -553,10 +560,13 @@ std::vector<uint8_t> EncodeGraph(const UncompressedGraph &g,
       std::chrono::duration_cast<std::chrono::microseconds>(stop - start)
           .count();
 
-  fprintf(stderr, "Compressed %zu edges in %.2fms (%.2f ME/s) to %.2f BPE. Checksum: %lx\n",
-    edges, elapsed, edges / elapsed, 8.0 * data.size() / edges, chksum);
-  if (checksum) *checksum = chksum;
+  fprintf(
+      stderr,
+      "Compressed %zu edges in %.2fms (%.2f ME/s) to %.2f BPE. Checksum: %lx\n",
+      edges, elapsed, edges / elapsed, 8.0 * data.size() / edges, chksum);
+  if (checksum)
+    *checksum = chksum;
   return data;
 }
 
-}  // namespace zuckerli
+} // namespace zuckerli
